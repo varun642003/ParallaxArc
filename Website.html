@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parallax Arc — Where Two Lives Meet</title>
+<meta name="description" content="Parallax Arc builds emotionally intelligent AI products. Our first product, Reverie, lets you have real conversations with the version of yourself who made a different choice.">
+<meta property="og:title" content="Parallax Arc">
+<meta property="og:description" content="Meet the version of you who made a different choice.">
+<meta property="og:url" content="https://parallaxarc.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0e0e0d;
+    --paper: #f5f2ec;
+    --accent: #1a1a18;
+    --muted: #6b6860;
+    --line: rgba(14,14,13,0.12);
+    --gold: #b8955a;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--ink);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 32px; height: 32px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
+    transform: translate(-50%, -50%);
+    opacity: 0.4;
+  }
+  a:hover ~ .cursor-ring, button:hover ~ .cursor-ring { width: 48px; height: 48px; opacity: 0.2; }
+
+  /* Nav */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    mix-blend-mode: normal;
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    opacity: 0.7;
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 120px 48px 80px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-headline {
+    font-size: clamp(52px, 6vw, 84px);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.4s forwards;
+  }
+  .hero-headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    margin-top: 32px;
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 420px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.6s forwards;
+  }
+
+  .hero-cta {
+    margin-top: 56px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.8s forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 36px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-primary:hover::after { transform: translateX(0); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    cursor: none;
+    background: none;
+    border: none;
+  }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-ghost svg { transition: transform 0.2s ease; }
+  .btn-ghost:hover svg { transform: translateX(4px); }
+
+  .hero-right {
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 1.2s ease 0.6s forwards;
+  }
+
+  /* Dual path visual */
+  .path-visual {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .path-visual svg {
+    width: 100%;
+    height: 100%;
+    opacity: 0.06;
+  }
+
+  .hero-image-block {
+    position: absolute;
+    inset: 80px 48px 80px 0;
+    background: var(--ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 48px;
+    overflow: hidden;
+  }
+  .hero-image-block::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(184,149,90,0.03) 40px,
+      rgba(184,149,90,0.03) 41px
+    );
+  }
+
+  .mirror-text {
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: rgba(245,242,236,0.15);
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
+  }
+  .mirror-text em {
+    font-style: italic;
+    color: rgba(184,149,90,0.4);
+  }
+
+  .mirror-caption {
+    margin-top: 24px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,242,236,0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-number {
+    position: absolute;
+    bottom: 80px;
+    right: 48px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    writing-mode: vertical-rl;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.2s forwards;
+  }
+
+  /* Divider */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 48px;
+    margin: 0;
+  }
+  .section-divider .line { flex: 1; height: 1px; background: var(--line); }
+  .section-divider .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* About section */
+  .about {
+    padding: 120px 48px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .about-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding-top: 8px;
+  }
+  .about-content {}
+  .about-title {
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+  }
+  .about-title em { font-style: italic; color: var(--gold); }
+  .about-body {
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 640px;
+  }
+  .about-body p + p { margin-top: 20px; }
+
+  /* Product section */
+  .product {
+    padding: 80px 48px 120px;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .product::before {
+    content: 'REVERIE';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(120px, 18vw, 220px);
+    font-weight: 300;
+    font-family: var(--serif);
+    color: rgba(255,255,255,0.02);
+    letter-spacing: -0.05em;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 80px;
+  }
+  .product-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .product-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .product-title {
+    font-size: clamp(52px, 7vw, 96px);
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: var(--paper);
+    margin-bottom: 48px;
+    position: relative;
+    z-index: 1;
+  }
+  .product-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .product-card {
+    padding: 48px 40px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.3s ease;
+  }
+  .product-card:hover { background: rgba(255,255,255,0.06); }
+
+  .card-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    margin-bottom: 24px;
+    opacity: 0.6;
+  }
+  .card-title {
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--paper);
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .card-title em { font-style: italic; color: var(--gold); }
+  .card-body {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(245,242,236,0.45);
+  }
+
+  .product-desc {
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(245,242,236,0.5);
+    max-width: 640px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Waitlist section */
+  .waitlist {
+    padding: 120px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .waitlist-title {
+    font-size: clamp(40px, 4.5vw, 60px);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .waitlist-title em { font-style: italic; color: var(--gold); }
+
+  .waitlist-sub {
+    margin-top: 24px;
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .waitlist-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 0;
+  }
+
+  .form-input {
+    flex: 1;
+    padding: 18px 24px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-right: none;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  .form-input::placeholder { color: var(--muted); opacity: 0.5; }
+  .form-input:focus { border-color: var(--gold); }
+
+  .form-submit {
+    padding: 18px 32px;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+  .form-submit:hover { background: var(--gold); border-color: var(--gold); }
+
+  .form-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .form-success {
+    display: none;
+    padding: 24px;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .footer-links a {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .footer-links a:hover { color: var(--ink); }
+
+  .footer-copy {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    opacity: 0.4;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    nav { padding: 24px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; min-height: auto; }
+    .hero-left { padding: 100px 24px 60px; }
+    .hero-right { height: 50vw; }
+    .hero-image-block { inset: 0; }
+    .hero-number { display: none; }
+    .about { grid-template-columns: 1fr; gap: 32px; padding: 80px 24px; }
+    .product { padding: 80px 24px; }
+    .product-grid { grid-template-columns: 1fr; }
+    .waitlist { grid-template-columns: 1fr; gap: 48px; padding: 80px 24px; }
+    .section-divider { padding: 0 24px; }
+    footer { flex-direction: column; gap: 24px; text-align: center; padding: 40px 24px; }
+    .footer-links { flex-wrap: wrap; justify-content: center; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a href="#" class="nav-logo">Parallax Arc</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#reverie">Reverie</a></li>
+    <li><a href="#waitlist">Join Waitlist</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="hero-tag">Parallax Arc — 2026</p>
+    <h1 class="hero-headline">
+      Meet the version<br>
+      of you who made<br>
+      a <em>different choice.</em>
+    </h1>
+    <p class="hero-sub">
+      We build emotionally intelligent AI experiences that explore the space between who you are and who you could have been.
+    </p>
+    <div class="hero-cta">
+      <a href="#waitlist" class="btn-primary">
+        <span>Join the Waitlist</span>
+      </a>
+      <a href="#reverie" class="btn-ghost">
+        Discover Reverie
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-image-block">
+      <p class="mirror-text">
+        Who would<br>
+        you be if you<br>
+        had said <em>yes?</em>
+      </p>
+      <p class="mirror-caption">The question your alternate self can answer</p>
+    </div>
+  </div>
+
+  <p class="hero-number">parallaxarc.com — 001</p>
+</section>
+
+<div class="section-divider">
+  <div class="line"></div>
+  <span class="label">Our Mission</span>
+  <div class="line"></div>
+</div>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-label reveal">The Company</div>
+  <div class="about-content">
+    <h2 class="about-title reveal">
+      A lab for the<br>
+      <em>in-between.</em>
+    </h2>
+    <div class="about-body reveal">
+      <p>Parallax is the phenomenon where the same thing looks completely different depending on where you are standing. Two people, same moment, entirely different view.</p>
+      <p>That is what we build — products that show you the same life from a different position. The version of you that took the other path. The future self who did the work. The relationship seen through both eyes at once.</p>
+      <p>Parallax Arc is an AI studio building emotionally intelligent experiences that have never existed before. We are based in India and building for the world.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">
+  <div class="line"></div>
+  <span class="label">First Product</span>
+  <div class="line"></div>
+</div>
+
+<!-- PRODUCT -->
+<section class="product" id="reverie">
+  <div class="product-header">
+    <span class="product-label">Reverie — Coming 2026</span>
+    <span class="product-number">Product 001</span>
+  </div>
+
+  <h2 class="product-title">
+    Your alternate<br>
+    self is <em>waiting</em><br>
+    to talk.
+  </h2>
+
+  <p class="product-desc">
+    Reverie is an AI-powered mobile app where you have real, ongoing conversations with the version of yourself who took the path you didn't. Same personality. Same voice. Different history.
+  </p>
+
+  <div class="product-grid">
+    <div class="product-card">
+      <p class="card-number">01</p>
+      <h3 class="card-title">The <em>Regret Fork</em></h3>
+      <p class="card-body">Define the pivotal moment you think about most. Talk to the version of you who made the other choice. Not a fantasy — a real, flawed, honest alternate self.</p>
+    </div>
+    <div class="product-card">
+      <p class="card-number">02</p>
+      <h3 class="card-title">The <em>Future Self</em></h3>
+      <p class="card-body">Define a goal. Set a timeframe. Meet the version of you who achieved it — and ask them how they actually got there. Mentorship from yourself.</p>
+    </div>
+    <div class="product-card">
+      <p class="card-number">03</p>
+      <h3 class="card-title"><em>Couple</em> Commit</h3>
+      <p class="card-body">A shared space for two people. See your relationship through each other's eyes. Read scenes from your shared future life, arriving every week.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">
+  <div class="line"></div>
+  <span class="label">Early Access</span>
+  <div class="line"></div>
+</div>
+
+<!-- WAITLIST -->
+<section class="waitlist" id="waitlist">
+  <div>
+    <h2 class="waitlist-title reveal">
+      Be the first to<br>
+      meet <em>yourself.</em>
+    </h2>
+    <p class="waitlist-sub reveal">
+      Reverie launches in 2026 on iOS and Android. Join the waitlist for early access, founding member pricing, and updates from the team.
+    </p>
+  </div>
+
+  <div class="waitlist-form reveal">
+    <div class="form-row">
+      <input type="email" class="form-input" id="email-input" placeholder="your@email.com" required>
+      <button class="form-submit" onclick="handleWaitlist()">
+        <span>Join</span>
+      </button>
+    </div>
+    <p class="form-note">No spam. No noise. Just Reverie — when it is ready.</p>
+    <div class="form-success" id="form-success">
+      You are on the list. We will be in touch.
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">Parallax Arc</span>
+  <ul class="footer-links">
+    <li><a href="mailto:hello@parallaxarc.com">hello@parallaxarc.com</a></li>
+    <li><a href="https://instagram.com/parallaxarclab" target="_blank">Instagram</a></li>
+    <li><a href="https://twitter.com/parallaxarclab" target="_blank">Twitter</a></li>
+    <li><a href="https://linkedin.com/company/parallaxarc" target="_blank">LinkedIn</a></li>
+  </ul>
+  <span class="footer-copy">© 2026 Parallax Arc. Built in India.</span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Waitlist form
+  function handleWaitlist() {
+    const email = document.getElementById('email-input').value;
+    if (!email || !email.includes('@')) {
+      document.getElementById('email-input').style.borderColor = '#c0392b';
+      return;
+    }
+    document.getElementById('email-input').style.borderColor = '#b8955a';
+    document.getElementById('form-success').style.display = 'block';
+    document.getElementById('email-input').value = '';
+    document.getElementById('email-input').placeholder = 'Thank you.';
+    document.getElementById('email-input').disabled = true;
+  }
+
+  // Enter key on email
+  document.getElementById('email-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleWaitlist();
+  });
+
+  // Cursor hide on leave
+  document.addEventListener('mouseleave', () => {
+    cursor.style.opacity = '0';
+    ring.style.opacity = '0';
+  });
+  document.addEventListener('mouseenter', () => {
+    cursor.style.opacity = '1';
+    ring.style.opacity = '0.4';
+  });
+</script>
+</body>
+</html>
